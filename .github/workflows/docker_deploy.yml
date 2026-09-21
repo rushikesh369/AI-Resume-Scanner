@@ -1,0 +1,40 @@
+name: "Build and Publish CI Runner"
+on:
+  push:
+    branches:
+      - "**"
+    paths:
+      - "AIRS-docker/**"
+      - ".github/workflows/docker_deploy.yml"
+
+env:
+  IMAGE_NAME: "ai-resume-ci-runner"
+
+jobs:
+  build-tag-push:
+    name: Build, Tag, and Push to Docker Hub
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./AIRS-docker
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+#Docker Login 
+      - name: Authenticate to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+#Docker Build 
+      - name: Build Docker Image
+        run: |
+          docker build \
+            -t ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest \
+            .
+#Docker Push
+      - name: Push Images to Docker Hub
+        run: |
+          docker push \
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
