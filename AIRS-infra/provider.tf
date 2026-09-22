@@ -1,5 +1,3 @@
 provider "google" {
-  project     = "airs-509413"
-  region      = "us-central1"
+  project = "airs-509413"
 }
-
