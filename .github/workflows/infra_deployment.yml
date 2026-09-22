@@ -30,23 +30,16 @@ jobs:
       with:
         workload_identity_provider: 'projects/561074583624/locations/global/workloadIdentityPools/airs-cicd-id-pool/providers/github'
         service_account: 'airs-cicd-sa@airs-509413.iam.gserviceaccount.com'
-
-
           
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v1
-      with:
-        cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
-
 
     - name: Terraform Init
       run: terraform init
 
-
     # Generates an execution plan for Terraform
     - name: Terraform Plan
       run: terraform plan -input=false
-
 
     - name: Terraform Apply
       run: terraform apply -auto-approve -input=false
