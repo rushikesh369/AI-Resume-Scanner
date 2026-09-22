@@ -1,23 +1,52 @@
-#placeholder for infra deployment pipeline
-name: Infrastructure Deloyment 
-on: 
+name: 'Terraform'
+
+on:
   push:
-    branches: ["*"]
-    
-runs-on: ubuntu-latest
+    branches: [ "master" ]
+  pull_request:
+
+permissions:
+  contents: read
+  id-token: 'write'
 
 jobs:
   terraform:
-    name: Terraform
+    name: 'Terraform'
     runs-on: ubuntu-latest
+
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./AIRS-docker
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+    # Checkout the repository to the GitHub Actions runner
+    - name: Checkout
+      uses: actions/checkout@v3
 
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: 1.5.7
+    - id: auth
+      uses: google-github-actions/auth@v2.0.0  
+      with:
+        workload_identity_provider: projects/561074583624/locations/global/workloadIdentityPools/airs-cicd-id-pool/providers/github'
+        service_account: 'airs-cicd-sa@airs-509413.iam.gserviceaccount.com'
 
-      - name: Terraform version
-        run: terraform version
+
+          
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v1
+      with:
+        cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
+
+    - name: Terraform Init
+      run: terraform init
+
+
+    # Generates an execution plan for Terraform
+    - name: Terraform Plan
+      run: terraform plan -input=false
+
+
+    - name: Terraform Apply
+      run: terraform apply -auto-approve -input=false
