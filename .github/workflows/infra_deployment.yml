@@ -18,7 +18,7 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: ./AIRS-docker
+        working-directory: ./AIRS-infra
 
     steps:
     # Checkout the repository to the GitHub Actions runner
