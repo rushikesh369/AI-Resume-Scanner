@@ -1,5 +1,5 @@
 resource "google_storage_bucket" "my-bucket" {
-  name                     = "bkt-demo-000"
+  name                     = "rushi-test-demo-1710"
   location                 = "us-central1"
   project                  = "airs-509504"
   force_destroy            = true
@@ -9,7 +9,7 @@ resource "google_storage_bucket" "my-bucket" {
 }
 
 resource "google_storage_bucket" "my-bucket2" {
-  name                     = "bkt-demo-002"
+  name                     = "rushi-test-demo-002"
   location                 = "us-central1"
   project                  = "airs-509504"
   force_destroy            = true
