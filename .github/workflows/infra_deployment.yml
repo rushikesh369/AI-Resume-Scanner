@@ -28,8 +28,8 @@ jobs:
     - id: auth
       uses: google-github-actions/auth@v2.0.0  
       with:
-        workload_identity_provider: 'projects/470539605200/locations/global/workloadIdentityPools/airs-cicd-id-pool/providers/github'
-        service_account: 'airs-cicd-sa@airs-509504.iam.gserviceaccount.com'
+        workload_identity_provider: '{{ secrets.workload_identity_provider }}'
+        service_account: '{{ secrets.service_account }}'
           
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v1
