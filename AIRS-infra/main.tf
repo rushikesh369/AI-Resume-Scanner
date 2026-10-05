@@ -1,19 +1,12 @@
-resource "google_storage_bucket" "my-bucket" {
-  name                     = "rushi-test-demo-1710"
-  location                 = "us-central1"
-  project                  = "airs-509504"
-  force_destroy            = true
-  public_access_prevention = "enforced"
-
-  uniform_bucket_level_access = true
+provider "google" {
+  project = "airs-509504"
 }
 
-resource "google_storage_bucket" "my-bucket2" {
-  name                     = "rushi-test-demo-002"
-  location                 = "us-central1"
-  project                  = "airs-509504"
-  force_destroy            = true
-  public_access_prevention = "enforced"
-
-  uniform_bucket_level_access = true
+module "vpc" {
+  source = "./modules/modules_VPC"
+  vpc_name = "AIRS-vpc"
+  project = "airs-509504"
+  subnet_name = "AIRS-subnet"
+  subnet_ip_range = "10.0.1.0/29"
+  region = "us-central1"
 }
