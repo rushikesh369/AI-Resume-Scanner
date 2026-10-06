@@ -1,7 +1,3 @@
-provider "google" {
-  project = "airs-509504"
-}
-
 module "vpc" {
   source = "./modules/modules_VPC"
   vpc_name = "AIRS-vpc"
