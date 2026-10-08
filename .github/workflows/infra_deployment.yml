@@ -1,45 +1,150 @@
-name: 'Terraform'
+#name: 'Terraform'
+#
+#on:
+#  push:
+#    branches: [ "**" ]
+#  pull_request:
+#
+#permissions:
+#  contents: read
+#  id-token: 'write'
+#
+#jobs:
+#  terraform:
+#    name: 'Terraform'
+#    runs-on: ubuntu-latest
+#
+#
+#    defaults:
+#      run:
+#        shell: bash
+#        working-directory: ./AIRS-infra
+#
+#    steps:
+#    # Checkout the repository to the GitHub Actions runner
+#    - name: Checkout
+#      uses: actions/checkout@v3
+#
+#    - id: auth
+#      uses: google-github-actions/auth@v2.0.0
+#      with:
+#        workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+#        service_account: ${{ secrets.SERVICE_ACCOUNT }}
+#
+#    - name: Setup Terraform
+#      uses: hashicorp/setup-terraform@v1
+#
+#    - name: Terraform Init
+#      run: terraform init
+#
+#    # Generates an execution plan for Terraform
+#    - name: Terraform Plan
+#      run: terraform plan -input=false
+#
+#    - name: Terraform Apply
+#      run: terraform apply -auto-approve -input=false
+
+name: 'Unified Infrastructure Deployment'
 
 on:
   push:
-    branches: [ "**" ]
+    branches: [ "main" ]
+    paths:
+      - 'AIRS-infra/**'
   pull_request:
+    branches: [ "main" ]
+    paths:
+      - 'AIRS-infra/**'
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Terraform Action to execute'
+        required: true
+        default: 'apply'
+        type: choice
+        options:
+          - apply
+          - destroy
 
 permissions:
   contents: read
-  id-token: 'write'
+  id-token: write
 
 jobs:
-  terraform:
-    name: 'Terraform'
+  foundation:
+    name: '01 Network, Storage & IAM Foundation'
     runs-on: ubuntu-latest
-
 
     defaults:
       run:
         shell: bash
-        working-directory: ./AIRS-infra
+        working-directory: ./AIRS-infra/01-network-configs
 
     steps:
-    # Checkout the repository to the GitHub Actions runner
-    - name: Checkout
-      uses: actions/checkout@v3
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-    - id: auth
-      uses: google-github-actions/auth@v2.0.0  
-      with:
-        workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
-        service_account: ${{ secrets.SERVICE_ACCOUNT }}
-          
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
+      - name: Authenticate to GCP via OIDC
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.SERVICE_ACCOUNT }}
 
-    - name: Terraform Init
-      run: terraform init
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.8.5"
 
-    # Generates an execution plan for Terraform
-    - name: Terraform Plan
-      run: terraform plan -input=false
+      - name: Terraform Init
+        run: terraform init
 
-    - name: Terraform Apply
-      run: terraform apply -auto-approve -input=false
+      - name: Terraform Plan
+        run: terraform plan -input=false
+
+      - name: Terraform Apply (Foundation)
+        if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+        run: terraform apply -auto-approve -input=false
+
+#  compute:
+#    name: '02 Compute (Private GKE & Spot VMs)'
+#    needs: foundation # Ensures base network and GSA outputs exist before GKE initializes
+#    runs-on: ubuntu-latest
+#
+#    defaults:
+#      run:
+#        shell: bash
+#        working-directory: ./AIRS-infra/02-compute
+#
+#    steps:
+#      - name: Checkout Repository
+#        uses: actions/checkout@v4
+#
+#      - name: Authenticate to GCP via OIDC
+#        uses: google-github-actions/auth@v2
+#        with:
+#          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+#          service_account: ${{ secrets.SERVICE_ACCOUNT }}
+#
+#      - name: Setup Terraform
+#        uses: hashicorp/setup-terraform@v3
+#        with:
+#          terraform_version: "1.8.5"
+#
+#      - name: Terraform Init
+#        run: terraform init
+#
+#      - name: Terraform Plan
+#        if: github.event.inputs.action != 'destroy'
+#        run: terraform plan -input=false
+#
+#      - name: Execute Terraform Action (Compute)
+#        if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+#        run: |
+#          ACTION="${{ github.event.inputs.action || 'apply' }}"
+#          if [ "$ACTION" == "destroy" ]; then
+#            echo "Tearing down GKE cluster to protect your ₹15,000 budget..."
+#            terraform destroy -auto-approve -input=false
+#          else
+#            echo "Applying GKE cluster and Spot node pool configurations..."
+#            terraform apply -auto-approve -input=false
+#          fi
