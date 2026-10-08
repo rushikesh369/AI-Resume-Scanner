@@ -48,7 +48,7 @@ name: 'Unified Infrastructure Deployment'
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "**" ]
     paths:
       - 'AIRS-infra/**'
   pull_request:
