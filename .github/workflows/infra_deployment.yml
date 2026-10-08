@@ -49,12 +49,7 @@ name: 'Unified Infrastructure Deployment'
 on:
   push:
     branches: [ "**" ]
-    paths:
-      - 'AIRS-infra/**'
   pull_request:
-    branches: [ "main" ]
-    paths:
-      - 'AIRS-infra/**'
   workflow_dispatch:
     inputs:
       action:
